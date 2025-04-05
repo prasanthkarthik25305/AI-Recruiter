@@ -1,24 +1,21 @@
-# 🤖 AI Recruiter - Multi-Agent AI Recruitment Assistant
+# 🤖 AI Recruiter - On-Prem Multi-Agent AI Recruitment Assistant
 
-Welcome to **AI Recruiter**, a multi-agent system designed to automate and streamline the recruitment process using LLMs and persistent memory via SQLite.
-
-Built as part of a hackathon challenge, this project reads job descriptions (JDs), parses candidate CVs, computes match scores, shortlists qualified candidates, and sends personalized interview invitations — all with AI agents working in coordination.
+**AI Recruiter** is a fully on-premise, privacy-focused recruitment automation system powered by **Ollama LLMs**, **embedding models**, and a **multi-agent architecture**. It automates job description analysis, candidate CV matching, shortlisting, and interview scheduling — all while keeping your data local and secure.
 
 ---
 
-## 🧠 Project Architecture
+## 🧠 System Architecture
 
 ```text
   ┌────────────┐       ┌──────────────────────┐       ┌────────────────┐
-  │ Job Inputs │──────▶│ JD Summarizer Agent  │──────▶│ Job DB         │
+  │ Job Inputs │──────▶│ JD Summarizer Agent  │──────▶│ Jobs DB        │
   └────────────┘       └──────────────────────┘       └────────────────┘
                                                            │
                                                            ▼
                       ┌────────────────────────────┐
                       │ Recruiting Agent           │◀─────┐
                       │ - CV parsing               │      │
-                      │ - Info extraction          │      │
-                      │ - Match score calculation  │      │
+                      │ - Info extraction (LLM/ML) │      │
                       └────────────────────────────┘      │
                                                            │
       ┌─────────────────────┐                              │
@@ -27,7 +24,12 @@ Built as part of a hackathon challenge, this project reads job descriptions (JDs
                │
                ▼
   ┌──────────────────────────────┐
-  │ Shortlister Agent            │───▶ Shortlisted Candidates
+  │ Embedding + Matching Agent   │───▶ Similarity Score
+  └──────────────────────────────┘
+               │
+               ▼
+  ┌──────────────────────────────┐
+  │ Shortlister Agent            │───▶ Final Candidates
   └──────────────────────────────┘
                │
                ▼
@@ -40,31 +42,37 @@ Built as part of a hackathon challenge, this project reads job descriptions (JDs
 
 ## 💡 Features
 
-- 🧾 **JD Summarizer Agent**  
-  Uses LLM to extract structured data like role, required skills, experience, and responsibilities from raw job descriptions.
+- 🧾 **JD Summarizer Agent**
+  - Extracts role, skills, qualifications, experience, and responsibilities using Ollama LLMs.
 
-- 📄 **Recruiting Agent**  
-  Parses candidate CVs (PDF/DOCX), extracts key information (skills, education, experience), and stores it in a SQLite DB.
+- 📄 **Recruiting Agent**
+  - Parses CVs with a hybrid of traditional parsing (`pdfplumber`, `docx`) and ML/LLM extraction.
 
-- 📊 **Match Scorer + Shortlister**  
-  Calculates match score between JD and each candidate. Shortlists candidates above a configurable threshold (e.g., 80%).
+- 🧠 **Embedding-based Matching Agent**
+  - Uses **Ollama embedding models** for vector similarity matching between candidate profiles and JDs.
 
-- 📅 **Interview Scheduler Agent**  
-  Generates and sends customized interview emails to shortlisted candidates with proposed time slots and interview mode.
+- 📊 **Shortlister**
+  - Selects top candidates based on match score threshold (e.g. ≥ 80%).
 
-- 🧠 **Persistent Memory**  
-  Uses SQLite to store job descriptions, parsed candidate data, match scores, and status flags.
+- 📅 **Interview Scheduler Agent**
+  - Generates human-like emails using LLMs and sends them through local SMTP or logs them for review.
+
+- 🗃️ **SQLite Memory**
+  - Stores long-term structured data for JDs, candidates, match scores, and agent states.
 
 ---
 
 ## ⚙️ Tech Stack
 
-- **Language**: Python 3.10+
-- **LLMs**: OpenAI GPT / Gemini Pro
-- **PDF Parsing**: `pdfplumber`, `python-docx`
-- **NLP**: `spaCy`, `fuzzywuzzy`, `transformers`
-- **DB**: SQLite (in-memory or file-based)
-- **Email**: `smtplib` or Gmail API (for < 100 mails/day)
+| Component             | Stack                                 |
+|----------------------|----------------------------------------|
+| LLMs & Embeddings    | [Ollama](https://ollama.com) (local)  |
+| Multi-Agent Control  | Custom Agent Framework (modular)      |
+| CV Parsing           | `pdfplumber`, `python-docx`, ML model |
+| Matching             | Ollama embeddings + cosine similarity |
+| Storage              | SQLite                                 |
+| Scheduling & Email   | Local SMTP / Simulated mailer         |
+| Add-ons              | Web scraper, custom ML, API plugins   |
 
 ---
 
@@ -77,18 +85,20 @@ git clone https://github.com/your-username/ai-recruiter.git
 cd ai-recruiter
 ```
 
-### 2. Install Dependencies
+### 2. Install Requirements
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Add Your Keys (if using OpenAI/Gemini)
+### 3. Start Ollama Locally
+
+Make sure you have [Ollama](https://ollama.com) installed and a model pulled.
 
 ```bash
-export OPENAI_API_KEY=your-api-key
-# or for Gemini
-export GOOGLE_API_KEY=your-api-key
+ollama run llama2
+# or pull embedding model
+ollama run nomic-embed-text
 ```
 
 ### 4. Run the Pipeline
@@ -99,69 +109,72 @@ python main.py --jd ./data/jds/jd1.txt --cvs ./data/cvs/
 
 ---
 
-## 🗃️ Project Structure
+## 📁 Project Structure
 
 ```text
 ai-recruiter/
 ├── agents/
-│   ├── jd_summarizer.py       # Summarizes job descriptions
-│   ├── recruiter.py           # Parses and extracts CV info
-│   ├── shortlister.py         # Filters candidates by score
-│   └── scheduler.py           # Sends interview emails
+│   ├── jd_summarizer.py
+│   ├── recruiter.py
+│   ├── matcher.py
+│   ├── shortlister.py
+│   └── scheduler.py
 ├── data/
-│   ├── jds/                   # Raw job descriptions
-│   └── cvs/                   # Candidate CVs (PDF/DOCX)
+│   ├── jds/
+│   └── cvs/
 ├── db/
-│   └── memory.sqlite          # SQLite database
+│   └── memory.sqlite
+├── embeddings/
+│   └── embedder.py
+├── tools/
+│   ├── cv_parser.py
+│   ├── emailer.py
+│   ├── web_scraper.py
+│   └── ml_model.py
 ├── utils/
-│   ├── parser.py              # CV parsing utils
-│   ├── matcher.py             # Matching logic
-│   └── emailer.py             # Email sending logic
-├── main.py                    # Main orchestration script
+│   └── prompt_templates.py
+├── main.py
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 📈 Scoring Logic (Example)
+## 🧠 Matching Logic (Sample)
 
 ```python
-score = (
-  0.7 * skill_overlap(candidate.skills, jd.skills) +
-  0.2 * education_match(candidate.education, jd.qualifications) +
-  0.1 * experience_match(candidate.years_exp, jd.years_exp)
-)
+def calculate_match_score(jd_embed, candidate_embed):
+    return cosine_similarity(jd_embed, candidate_embed)
 ```
 
-> Shortlist if score ≥ 0.8
+> Candidates with score ≥ 0.8 are shortlisted.
 
 ---
 
-## 📬 Email Example
+## 📬 Email Output (Example)
 
 ```text
-Subject: Interview Invitation - Backend Engineer Role
+Subject: Interview Invitation - Data Analyst Role
 
-Hi John,
+Hi Priya,
 
-We were impressed by your profile and would like to invite you for an interview for the Backend Engineer position.
+Thank you for applying for the Data Analyst position. Based on your qualifications and experience, we’re excited to invite you for an interview.
 
 Proposed Time Slots:
-- Monday 2:00 PM
-- Tuesday 4:00 PM
+- Tuesday, 10:00 AM IST
+- Wednesday, 2:00 PM IST
 
-Format: Google Meet
+Interview Format: Zoom / Google Meet
 
-Regards,  
+Best regards,  
 AI Recruiter Team
 ```
 
 ---
 
-## 🤝 Contributing
+## 🛡️ Privacy & Local-first Approach
 
-Pull requests welcome! For major changes, please open an issue first.
+No data leaves your machine. Everything — from parsing to LLM usage — runs on your local system via **Ollama**. Perfect for enterprise and data-sensitive applications.
 
 ---
 
@@ -171,6 +184,14 @@ MIT License
 
 ---
 
-## 🏆 Built With 💙 for the Hackathon
+## 🏁 Built For
 
-> Automating recruitment, one candidate at a time. 🚀
+> 🔥 Hack the Future — A GenAI sprint powered by Data.
+
+---
+
+Let me know if you want:
+- 🧪 Unit test support
+- 🖥️ Lightweight web UI
+- 🧩 Prebuilt JD/CV examples
+- 📦 Packaging for offline deployment
