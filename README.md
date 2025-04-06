@@ -114,30 +114,39 @@ python main.py --jd ./data/jds/jd1.txt --cvs ./data/cvs/
 ```text
 ai-recruiter/
 ├── agents/
+│   ├── embedding_generator.py
 │   ├── jd_summarizer.py
 │   ├── recruiter.py
 │   ├── matcher.py
 │   ├── shortlister.py
 │   └── scheduler.py
+│
 ├── data/
+│   ├── cvs/
 │   ├── jds/
-│   └── cvs/
+│   ├── summaries/
+│   ├── ai_recruiter.db
+│   └── job_embeddings.db
+│
 ├── db/
-│   └── memory.sqlite
-├── embeddings/
-│   └── embedder.py
+│   └── init_db.py
+│
 ├── tools/
 │   ├── cv_parser.py
 │   ├── emailer.py
-│   ├── web_scraper.py
-│   └── ml_model.py
+│   ├── embedding_client.py
+│   ├── llm_client.py
+│   ├── ml_model.py
+│   └── web_scraper.py
+│
 ├── utils/
 │   └── prompt_templates.py
+│
+├── convert_jds.py
+├── job_description.csv
 ├── main.py
-├── requirements.txt
-└── README.md
-```
-
+├── README.md
+└── requirements.txt
 ---
 
 ## 🧠 Matching Logic (Sample)
