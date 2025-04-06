@@ -7,101 +7,146 @@
 ## 🧠 System Architecture
 
 ```text
-  ┌────────────┐       ┌──────────────────────┐       ┌────────────────┐
-  │ Job Inputs │──────▶│ JD Summarizer Agent  │──────▶│ Jobs DB        │
-  └────────────┘       └──────────────────────┘       └────────────────┘
-                                                           │
-                                                           ▼
-                      ┌────────────────────────────┐
-                      │ Recruiting Agent           │◀─────┐
-                      │ - CV parsing               │      │
-                      │ - Info extraction (LLM/ML) │      │
-                      └────────────────────────────┘      │
-                                                           │
-      ┌─────────────────────┐                              │
-      │ Candidate CVs       │──────────────────────────────┘
-      └─────────────────────┘
-               │
-               ▼
-  ┌──────────────────────────────┐
-  │ Embedding + Matching Agent   │───▶ Similarity Score
-  └──────────────────────────────┘
-               │
-               ▼
-  ┌──────────────────────────────┐
-  │ Shortlister Agent            │───▶ Final Candidates
-  └──────────────────────────────┘
-               │
-               ▼
-  ┌──────────────────────────────┐
-  │ Interview Scheduler Agent    │───▶ Personalized Emails
-  └──────────────────────────────┘
-```
+┌────────────┐
+│ Job Inputs │
+└─────┬──────┘
+      ▼
+┌────────────────────────────┐
+│   JD Summarizer Agent      │
+│  (Extracts role, skills)   │
+└─────┬──────────────────────┘
+      ▼
+┌────────────────────────────┐
+│       Jobs Database        │
+└─────┬──────────────────────┘
+      ▼
+┌────────────────────────────┐        ┌──────────────────────┐
+│     Recruiting Agent       │◀───────│   Candidate CVs      │
+│ - CV Parsing               │        └──────────────────────┘
+│ - Info Extraction (LLM)    │
+└─────┬──────────────────────┘
+      ▼
+┌──────────────────────────────┐
+│ Embedding + Matching Agent   │
+│  - Generates vector embeddings│
+│  - Calculates similarity      │
+└─────┬─────────────────────────┘
+      ▼
+┌──────────────────────────────┐
+│      Shortlister Agent       │
+│ - Filters candidates ≥ 80%   │
+└─────┬────────────────────────┘
+      ▼
+┌──────────────────────────────┐
+│  Interview Scheduler Agent   │
+│ - Suggests time slots        │
+│ - Sends email notifications  │
+└──────────────────────────────┘
 
 ---
 
-## 💡 Features
+### 💡 Key Features – AI Recruiter
 
-- 🧾 **JD Summarizer Agent**
-  - Extracts role, skills, qualifications, experience, and responsibilities using Ollama LLMs.
-
-- 📄 **Recruiting Agent**
-  - Parses CVs with a hybrid of traditional parsing (`pdfplumber`, `docx`) and ML/LLM extraction.
-
-- 🧠 **Embedding-based Matching Agent**
-  - Uses **Ollama embedding models** for vector similarity matching between candidate profiles and JDs.
-
-- 📊 **Shortlister**
-  - Selects top candidates based on match score threshold (e.g. ≥ 80%).
-
-- 📅 **Interview Scheduler Agent**
-  - Generates human-like emails using LLMs and sends them through local SMTP or logs them for review.
-
-- 🗃️ **SQLite Memory**
-  - Stores long-term structured data for JDs, candidates, match scores, and agent states.
+| 🧠 Agent | ✨ Capability |
+|---------|---------------|
+| 🧾 **JD Summarizer Agent** | Extracts **role**, **skills**, **qualifications**, and **responsibilities** from job descriptions using local LLMs via **Ollama**. |
+| 📄 **Recruiting Agent** | Parses CVs using a hybrid of **traditional parsers** (`pdfplumber`, `python-docx`) and **LLM-based info extraction**. |
+| 🧠 **Matching Agent** | Embeds JD and CV data using **Ollama embedding models**, then matches them using **cosine similarity**. |
+| 📊 **Shortlister Agent** | Selects **top candidates** based on a **match score threshold** (e.g., ≥ 80%). |
+| 📅 **Interview Scheduler Agent** | Crafts **personalized emails** using LLMs and sends them via **SMTP** or logs them for offline review. |
+| 💽 **SQLite Memory** | Manages structured data for **JDs**, **candidate profiles**, **scores**, and **agent states** in a local database. |
+| 🔐 **Privacy-First** | Entire system runs **locally**. No cloud. No leaks. 100% **on-prem** AI recruiting. |
 
 ---
 
-## ⚙️ Tech Stack
+## ⚙️ Tech Stack Overview
 
-| Component             | Stack                                 |
-|----------------------|----------------------------------------|
-| LLMs & Embeddings    | [Ollama](https://ollama.com) (local)  |
-| Multi-Agent Control  | Custom Agent Framework (modular)      |
-| CV Parsing           | `pdfplumber`, `python-docx`, ML model |
-| Matching             | Ollama embeddings + cosine similarity |
-| Storage              | SQLite                                 |
-| Scheduling & Email   | Local SMTP / Simulated mailer         |
-| Add-ons              | Web scraper, custom ML, API plugins   |
+| 🧩 Component           | 🔧 Stack / Technology                           |
+|------------------------|------------------------------------------------|
+| 🧠 LLMs & Embeddings   | [**Ollama**](https://ollama.com) (Local LLMs & Embeddings) |
+| 🧑‍💼 Multi-Agent Control | Modular, custom-built **Python framework**      |
+| 📄 CV Parsing          | `pdfplumber`, `python-docx`, + ML-based NER    |
+| 📊 Matching Logic      | **Vector Embedding + Cosine Similarity**       |
+| 🗃️ Storage             | **SQLite** – Lightweight, local-first DB       |
+| 📅 Scheduling & Email  | **SMTP (via smtplib)** or **offline logging**  |
+| 🔌 Add-ons             | Web scraping modules, plug-in friendly design  |
 
 ---
 
-## 🚀 How to Run
+## ✨ Benefits
 
-### 1. Clone the Repo
+- ✅ **Modular Agents** – Easily customizable or extendable for different workflows.
+- 🚀 **Fully Local** – Secure, fast, and no internet dependency.
+- 🧠 **LLM-Powered** – Accurate parsing and intelligent candidate matching.
+- 📧 **Email Automation** – Interview emails that feel *personal*, not robotic.
+- 💡 **Insightful Filtering** – Shortlists only the best-fit candidates.
+
+Sure! Here's your **🚀 Installation & Setup** section rewritten in clean and professional **README.md** format, with improved clarity, formatting, and consistent styling:
+
+---
+
+```markdown
+## 🚀 Installation & Setup
+
+Follow these steps to get the AI Recruiter up and running locally.
+
+---
+
+### 1️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/your-username/ai-recruiter.git
 cd ai-recruiter
 ```
 
-### 2. Install Requirements
+---
+
+### 2️⃣ Install Dependencies
+
+Ensure you have Python 3.8+ installed.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Start Ollama Locally
+---
 
-Make sure you have [Ollama](https://ollama.com) installed and a model pulled.
+### 3️⃣ Start Ollama Locally
+
+Install [Ollama](https://ollama.com) if you haven’t already.
+
+Pull and run the required models:
 
 ```bash
-ollama run llama2
-# or pull embedding model
-ollama run nomic-embed-text
+ollama run llama2             # For LLM-based tasks
+ollama run nomic-embed-text   # For embedding-based matching
 ```
 
-### 4. Run the Pipeline
+---
+
+### 4️⃣ Initialize the Database
+
+Set up the SQLite database with required tables:
+
+```bash
+python db/init_db.py
+```
+
+---
+
+### 5️⃣ (Optional) Convert Raw Job Descriptions
+
+Pre-process job descriptions before feeding them into the pipeline:
+
+```bash
+python convert_jds.py
+```
+
+---
+
+### ▶️ Run the Full Pipeline
+
+Run the main pipeline with a job description and a folder of candidate CVs:
 
 ```bash
 python main.py --jd ./data/jds/jd1.txt --cvs ./data/cvs/
@@ -109,6 +154,32 @@ python main.py --jd ./data/jds/jd1.txt --cvs ./data/cvs/
 
 ---
 
+### ⚙️ Run Individual Agents (Optional)
+
+You can also run specific agents for testing or modular development:
+
+```bash
+# Recruiter Agent
+python -m agents.recruiter
+
+# Embedding Matcher Agent
+python -m agents.matcher
+
+# Shortlister Agent
+python -m agents.shortlister
+
+# Interview Scheduler Agent
+python -m agents.scheduler
+```
+
+---
+
+### ✅ You're Ready to Go!
+
+Your AI-powered recruiter is now set up and ready to parse, match, and schedule candidates — all locally and privately.
+```
+
+Let me know if you'd like a version of this in a **PowerPoint-friendly format** as well!
 ## 📁 Project Structure
 
 ```text

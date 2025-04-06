@@ -1,6 +1,7 @@
 # main.py
 
 from agents.jd_summarizer import JDSummarizer
+from agents import recruiter
 
 def process_jd(file_path):
     with open(file_path, 'r') as f:
@@ -12,6 +13,10 @@ def process_jd(file_path):
     print("📄 JD Summary:")
     print(summary)
 
-# Example call
 if __name__ == "__main__":
-    process_jd("./data/jds/jd1.txt")
+    # 1. Summarize a JD (optional preview)
+    #process_jd("./data/jds")
+
+    # 2. Run the full resume processing pipeline
+    print("\n🔁 Starting Resume Processing...")
+    recruiter.process_resumes()
